@@ -1,12 +1,17 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class Player : MonoBehaviour {
   [SerializeField]
+  float speed = 5;
+
+  [SerializeField]
   float jumpSpeed = 10;
   [SerializeField]
   float jumpModifier = 1;
+
   Rigidbody2D rb;
   Animator an;
 
@@ -16,14 +21,18 @@ public class Player : MonoBehaviour {
   }
 
   void Update() {
+    Move();
     Flap();
-    Debug.Log(rb.velocity);
+  }
+
+  private void Move() {
+    rb.velocity = new Vector2(speed, rb.velocity.y);
   }
 
   void Flap() {
     bool isJumping = Input.GetButtonDown("Jump");
     if (isJumping) {
-      rb.velocity = new Vector2(rb.velocity.x, jumpSpeed);
+      rb.velocity = new Vector2(rb.velocity.x, jumpSpeed * jumpModifier);
       if (!an.GetBool("Flapping"))
         an.Play("Flap-wings", -1, 0f);
       an.SetBool("Flapping", true);
