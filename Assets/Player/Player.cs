@@ -40,4 +40,10 @@ public class Player : MonoBehaviour {
       an.SetBool("Flapping", false);
     }
   }
+
+  void OnTriggerEnter2D(Collider2D triggerCollider) {
+    if (triggerCollider.tag == "sword") {
+      Destroy(gameObject);
+    }
+  }
 }
