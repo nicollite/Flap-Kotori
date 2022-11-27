@@ -4,8 +4,10 @@ using UnityEngine;
 
 public class FollowPlayer : MonoBehaviour {
   public Transform player;
-  float PLAYER_CAMERA_OFFSET = 7;
-  float CAMERA_DISTANCE = -10;
+  [SerializeField]
+  float playerFollowOffeset;
+  [SerializeField]
+  float offesetDistance;
   void Start() {
 
   }
@@ -13,7 +15,7 @@ public class FollowPlayer : MonoBehaviour {
 
   void Update() {
     if (player)
-      transform.position = new Vector3(player.transform.position.x + PLAYER_CAMERA_OFFSET, 0, CAMERA_DISTANCE);
+      transform.position = new Vector3(player.transform.position.x + playerFollowOffeset, 0, offesetDistance);
   }
 
 }
