@@ -11,6 +11,8 @@ public class Player : MonoBehaviour {
   float jumpSpeed = 10;
   [SerializeField]
   float jumpModifier = 1;
+  [SerializeField]
+  float maxHeight;
 
   Rigidbody2D rb;
   Animator an;
@@ -30,6 +32,7 @@ public class Player : MonoBehaviour {
   }
 
   void Flap() {
+    if (transform.position.y > maxHeight) return;
     bool isJumping = Input.GetButtonDown("Jump");
     if (isJumping) {
       rb.velocity = new Vector2(rb.velocity.x, jumpSpeed * jumpModifier);
