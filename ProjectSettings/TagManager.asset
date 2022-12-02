@@ -5,6 +5,8 @@ TagManager:
   serializedVersion: 2
   tags:
   - sword
+  - ground
+  - swords pair
   layers:
   - Default
   - TransparentFX
