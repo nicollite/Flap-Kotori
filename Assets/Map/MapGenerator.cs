@@ -10,6 +10,8 @@ public class MapGenerator : MonoBehaviour {
   public float SWORD_GAP_SIZE = 2f;
   [SerializeField]
   public float DISTANCE_BETWEEN_SWORDS = 2f;
+  [SerializeField]
+  public int GENERATE_NEW_MAP_PART_OFFSET = 4;
   public float SWORD_SIZE = 2;
 
   public Camera cam;
@@ -27,6 +29,7 @@ public class MapGenerator : MonoBehaviour {
 
   MapPart oldPart;
 
+
   void Start() {
     camHalfHeight = cam.orthographicSize;
     camHalfWidth = 2f * cam.orthographicSize * cam.aspect / 2;
@@ -34,17 +37,19 @@ public class MapGenerator : MonoBehaviour {
     nextPartDestroy["start"] = new Vector3Int(ground.cellBounds.xMax, ground.cellBounds.y, 0);
     oldPart = new MapPart(null, nextPartDestroy);
 
+    FindObjectOfType<GameStateController>().OnRestartGame += RestartGame;
   }
 
   void Update() {
-    if (cam.transform.position.x + camHalfWidth > nextNewPartPosition.x) {
+    // return;
+    if (cam.transform.position.x + camHalfWidth > nextNewPartPosition.x - GENERATE_NEW_MAP_PART_OFFSET) {
       GenerateNewPart();
     }
+    // print(cam);
+    // print(oldPart);
     if (cam.transform.position.x - camHalfWidth > oldPart.partDestroy["start"].x + 1) {
-      DestroyOldPArt();
+      DestroyOldPart();
     }
-
-
   }
 
   void GenerateNewPart() {
@@ -59,14 +64,14 @@ public class MapGenerator : MonoBehaviour {
 
   void GenerateGround(int startX) {
     for (int i = 0; i < PART_SIZE; i++) {
-      ground.SetTile(new Vector3Int(startX + i, ground.cellBounds.y, ground.cellBounds.z), groundTile);
+      ground.SetTile(new Vector3Int(startX + i, -5, ground.cellBounds.z), groundTile);
     }
 
     SetNewPartsPosition();
   }
 
   List<GameObject> GenerateSwords(int startX) {
-    int numberOfSwordPairs = (int)(PART_SIZE / (DISTANCE_BETWEEN_SWORDS + SWORD_SIZE));
+    int numberOfSwordPairs = (int)((PART_SIZE) / (DISTANCE_BETWEEN_SWORDS + SWORD_SIZE));
     List<GameObject> swordPairs = new List<GameObject>();
     for (int i = 0; i < numberOfSwordPairs; i++) {
       float x = startX + (i * (DISTANCE_BETWEEN_SWORDS + SWORD_SIZE));
@@ -82,29 +87,47 @@ public class MapGenerator : MonoBehaviour {
 
     GameObject swordPair = new GameObject("sword pair");
     swordPair.transform.position = new Vector2(x, 0);
+    swordPair.tag = "swords pair";
     upSword.transform.SetParent(swordPair.transform);
     downSword.transform.SetParent(swordPair.transform);
     swordPair.transform.position = new Vector2(swordPair.transform.position.x, y);
 
     return swordPair;
   }
-
-  void SetNewPartsPosition() {
-    nextPartDestroy["start"] = new Vector3Int(nextNewPartPosition.x, nextNewPartPosition.y, nextNewPartPosition.z);
-    nextPartDestroy["end"] = new Vector3Int(ground.cellBounds.xMin, ground.cellBounds.y, ground.cellBounds.z);
-    nextNewPartPosition = new Vector3Int(ground.cellBounds.xMax, ground.cellBounds.y, ground.cellBounds.z);
-  }
-
-  void DestroyOldPArt() {
-    foreach (GameObject s in oldPart.swordPairs) {
-      Destroy(s.gameObject);
-    }
+  void DestroyOldPart() {
+    DestroySwords(oldPart.swordPairs);
 
     for (int i = oldPart.partDestroy["start"].x; i >= oldPart.partDestroy["end"].x; i--) {
       ground.SetTile(new Vector3Int(i, -5, 0), null);
     }
 
-
     SetNewPartsPosition();
+  }
+
+  void DestroySwords(IEnumerable<GameObject> swordPairs) {
+    foreach (GameObject s in swordPairs) {
+      Destroy(s.gameObject);
+    }
+  }
+
+
+  void SetNewPartsPosition() {
+    nextPartDestroy["start"] = new Vector3Int(nextNewPartPosition.x - GENERATE_NEW_MAP_PART_OFFSET, nextNewPartPosition.y, nextNewPartPosition.z);
+    nextPartDestroy["end"] = new Vector3Int(ground.cellBounds.xMin, ground.cellBounds.y, ground.cellBounds.z);
+    nextNewPartPosition = new Vector3Int(ground.cellBounds.xMax, ground.cellBounds.y, ground.cellBounds.z);
+    ground.CompressBounds();
+  }
+
+
+  void RestartGame() {
+    GameObject[] swordPairs = GameObject.FindGameObjectsWithTag("swords pair");
+    DestroySwords(swordPairs);
+
+    for (int i = ground.cellBounds.xMin; i <= ground.cellBounds.xMax; i++) {
+      ground.SetTile(new Vector3Int(i, -5, 0), null);
+    }
+
+    Start();
+    GenerateGround(-9);
   }
 }
